@@ -17,6 +17,8 @@ public class StockAnalysis {
 
     public static final String ASX_CODES_CSV = System.getProperty("asx_codes", "companies.csv");
     public static final String SHOW_BOTH = System.getProperty("both", "false");
+    public static final String MINI_PRICE = System.getProperty("mini", "1");
+
 
     public static void main(String[] args) throws IOException {
 
@@ -66,10 +68,12 @@ public class StockAnalysis {
 
             OptionalDouble average20 = historicalQuoteList.stream().mapToDouble(hq -> hq.getClose().doubleValue()).average();
 
-            if (isAbove20Avg) {
-                return historicalQuoteList.get(0).getClose().doubleValue() > average20.getAsDouble() && historicalQuoteList.get(1).getClose().doubleValue() < average20.getAsDouble();
-            } else {
-                return historicalQuoteList.get(0).getClose().doubleValue() < average20.getAsDouble() && historicalQuoteList.get(1).getClose().doubleValue() > average20.getAsDouble();
+            if(average20.getAsDouble() > Double.valueOf(MINI_PRICE)) {
+                if (isAbove20Avg) {
+                    return historicalQuoteList.get(0).getClose().doubleValue() > average20.getAsDouble() && historicalQuoteList.get(1).getClose().doubleValue() < average20.getAsDouble();
+                } else {
+                    return historicalQuoteList.get(0).getClose().doubleValue() < average20.getAsDouble() && historicalQuoteList.get(1).getClose().doubleValue() > average20.getAsDouble();
+                }
             }
 
         } catch (IOException e) {
