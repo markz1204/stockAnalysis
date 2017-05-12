@@ -7,7 +7,10 @@ import yahoofinance.histquotes.Interval;
 
 import java.io.*;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+import java.util.OptionalDouble;
 import java.util.stream.Collectors;
 
 /**
@@ -24,14 +27,14 @@ public class StockAnalysis {
 
         StockAnalysis stockAnalysis = new StockAnalysis();
 
-        Set<String> below20Avg = null;
+        List<String> below20Avg = null;
 
         long start = System.currentTimeMillis();
 
-        Set<String> above20Avg = stockAnalysis.getASXCodes().stream().parallel().filter(code -> isQualified(code, true)).collect(Collectors.toSet());
+        List<String> above20Avg = stockAnalysis.getASXCodes().stream().parallel().filter(code -> isQualified(code, true)).collect(Collectors.toList());
 
         if (Boolean.TRUE.equals(Boolean.valueOf(SHOW_BOTH))) {
-            below20Avg = stockAnalysis.getASXCodes().stream().parallel().filter(code -> isQualified(code, false)).collect(Collectors.toSet());
+            below20Avg = stockAnalysis.getASXCodes().stream().parallel().filter(code -> isQualified(code, false)).collect(Collectors.toList());
         }
 
         long end = System.currentTimeMillis();
@@ -59,6 +62,8 @@ public class StockAnalysis {
 
             List<HistoricalQuote> historicalQuoteList = stock.getHistory();
 
+            historicalQuoteList = historicalQuoteList.stream().filter(hq->(hq.getVolume() > 0)).collect(Collectors.toList());
+
             if (historicalQuoteList.size() < 20) {
                 return false;
             }
@@ -70,9 +75,9 @@ public class StockAnalysis {
 
             if(average20.getAsDouble() > Double.valueOf(MINI_PRICE)) {
                 if (isAbove20Avg) {
-                    return historicalQuoteList.get(0).getClose().doubleValue() > average20.getAsDouble() && historicalQuoteList.get(1).getClose().doubleValue() < average20.getAsDouble();
+                    return historicalQuoteList.get(0).getAdjClose().doubleValue() > average20.getAsDouble() && historicalQuoteList.get(1).getAdjClose().doubleValue() < average20.getAsDouble();
                 } else {
-                    return historicalQuoteList.get(0).getClose().doubleValue() < average20.getAsDouble() && historicalQuoteList.get(1).getClose().doubleValue() > average20.getAsDouble();
+                    return historicalQuoteList.get(0).getAdjClose().doubleValue() < average20.getAsDouble() && historicalQuoteList.get(1).getAdjClose().doubleValue() > average20.getAsDouble();
                 }
             }
 
