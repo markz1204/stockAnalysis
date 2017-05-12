@@ -83,25 +83,25 @@ public class StockAnalysis {
         return false;
     }
 
-    private List<String> getASXCodes() {
+    private List<String> getASXCodes() throws IOException {
 
         BufferedReader br = null;
         String line = "";
         String cvsSplitBy = ",";
         List<String> codes = new ArrayList<>();
 
-        File source = null;
+        InputStreamReader inputStreamReader = null;
 
         if (!Paths.get(ASX_CODES_CSV).isAbsolute()) {
-            ClassLoader classLoader = getClass().getClassLoader();
-            source = new File(classLoader.getResource(ASX_CODES_CSV).getFile());
+            inputStreamReader = new InputStreamReader(getClass().getResourceAsStream("/" + ASX_CODES_CSV));
         } else {
-            source = new File(ASX_CODES_CSV);
+            inputStreamReader = new FileReader(new File(ASX_CODES_CSV));
         }
 
         try {
 
-            br = new BufferedReader(new FileReader(source));
+            br = new BufferedReader(inputStreamReader);
+
             while ((line = br.readLine()) != null) {
 
                 // use comma as separator
