@@ -7,10 +7,7 @@ import yahoofinance.histquotes.Interval;
 
 import java.io.*;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.OptionalDouble;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -21,6 +18,8 @@ public class StockAnalysis {
     public static final String ASX_CODES_CSV = System.getProperty("asx_codes", "companies.csv");
     public static final String SHOW_BOTH = System.getProperty("both", "false");
     public static final String MINI_PRICE = System.getProperty("mini", "1");
+    public static final String MAX_PRICE = System.getProperty("mini", "100");
+
 
 
     public static void main(String[] args) throws IOException {
@@ -62,18 +61,18 @@ public class StockAnalysis {
 
             List<HistoricalQuote> historicalQuoteList = stock.getHistory();
 
-            historicalQuoteList = historicalQuoteList.stream().filter(hq->(hq.getVolume() > 0)).collect(Collectors.toList());
+            historicalQuoteList = historicalQuoteList.parallelStream().filter(hq->(hq.getVolume() != null && hq.getVolume() > 0)).sorted(Comparator.comparing(HistoricalQuote::getDate).reversed()).collect(Collectors.toList());
 
-            if (historicalQuoteList.size() < 20) {
+            if (historicalQuoteList.size() < 21) {
                 return false;
             }
 
             //Get recent 20 days quotes.
-            historicalQuoteList = historicalQuoteList.subList(0, 20);
+            historicalQuoteList = historicalQuoteList.subList(1, 21);
 
-            OptionalDouble average20 = historicalQuoteList.stream().mapToDouble(hq -> hq.getClose().doubleValue()).average();
+            OptionalDouble average20 = historicalQuoteList.stream().mapToDouble(hq -> hq.getAdjClose() != null ? hq.getAdjClose().doubleValue() : 0.00).average();
 
-            if(average20.getAsDouble() > Double.valueOf(MINI_PRICE)) {
+            if(average20.getAsDouble() >= Double.valueOf(MINI_PRICE) && average20.getAsDouble() <= Double.valueOf(MAX_PRICE)) {
                 if (isAbove20Avg) {
                     return historicalQuoteList.get(0).getAdjClose().doubleValue() > average20.getAsDouble() && historicalQuoteList.get(1).getAdjClose().doubleValue() < average20.getAsDouble();
                 } else {
