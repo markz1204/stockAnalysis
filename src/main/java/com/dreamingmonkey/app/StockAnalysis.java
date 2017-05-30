@@ -17,8 +17,8 @@ public class StockAnalysis {
 
     public static final String ASX_CODES_CSV = System.getProperty("asx_codes", "companies.csv");
     public static final String SHOW_BOTH = System.getProperty("both", "false");
-    public static final String MINI_PRICE = System.getProperty("mini", "1");
-    public static final String MAX_PRICE = System.getProperty("mini", "100");
+    public static final String MINI_PRICE = System.getProperty("min", "1");
+    public static final String MAX_PRICE = System.getProperty("max", "100");
 
 
 
