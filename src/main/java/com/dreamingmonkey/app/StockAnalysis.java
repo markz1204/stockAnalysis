@@ -63,12 +63,12 @@ public class StockAnalysis {
 
             historicalQuoteList = historicalQuoteList.parallelStream().filter(hq->(hq.getVolume() != null && hq.getVolume() > 0)).sorted(Comparator.comparing(HistoricalQuote::getDate).reversed()).collect(Collectors.toList());
 
-            if (historicalQuoteList.size() < 21) {
+            if (historicalQuoteList.size() < 20) {
                 return false;
             }
 
             //Get recent 20 days quotes.
-            historicalQuoteList = historicalQuoteList.subList(1, 21);
+            historicalQuoteList = historicalQuoteList.subList(0, 20);
 
             OptionalDouble average20 = historicalQuoteList.stream().mapToDouble(hq -> hq.getAdjClose() != null ? hq.getAdjClose().doubleValue() : 0.00).average();
 
