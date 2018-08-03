@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -15,46 +16,58 @@ import java.util.stream.Collectors;
  */
 public class StockAnalysis {
 
-    public static final String ASX_CODES_CSV = System.getProperty("asx_codes", "companies.csv");
+    private static final String ASX_CODES_CSV = System.getProperty("asx_codes", "companies.csv");
     private static String SHOW_2_SIDES = System.getProperty("2sides", "");
     private static String STRATEGIES= System.getProperty("strategies", "");
     private static String MIN_PRICE = System.getProperty("min", "");
     private static String MAX_PRICE = System.getProperty("max", "");
+    private static String SINGLE_CHECK = System.getProperty("single", "");
     private List<String> codes = null;
 
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
-        inputConfig();
+        if(!SINGLE_CHECK.isEmpty()){
+            Turtle turtle = new Turtle(MIN_PRICE, MAX_PRICE);
 
-        System.out.println("Starting process, Price range " + MIN_PRICE + " TO " + MAX_PRICE + ", Strategies: " + STRATEGIES);
+            System.out.println("Sell now ? " + turtle.isQualified(SINGLE_CHECK, false));
+        }else{
+            inputConfig();
 
-        StockAnalysis stockAnalysis = new StockAnalysis();
+            System.out.println("Starting process, Price range " + MIN_PRICE + " TO " + MAX_PRICE + ", Strategies: " + STRATEGIES);
 
-        ExecutorService executorService = Executors.newFixedThreadPool(2);
+            StockAnalysis stockAnalysis = new StockAnalysis();
 
-        List<String> strategies = Arrays.asList(STRATEGIES.split(","));
+            ExecutorService executorService = Executors.newFixedThreadPool(2);
 
-        if(strategies.contains("avg20")) {
-            executorService.submit(() -> {
-                try {
-                    stockAnalysis.average20Result();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
+            List<String> strategies = Arrays.asList(STRATEGIES.split(","));
+
+            if(strategies.contains("avg20")) {
+                executorService.submit(() -> {
+                    try {
+                        stockAnalysis.average20Result();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+            }
+
+            if(strategies.contains("turtle")) {
+                executorService.submit(() -> {
+                    try {
+                        stockAnalysis.turtleResult();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+            }
+
+            executorService.awaitTermination(30, TimeUnit.MINUTES);
+
+            if(!executorService.isShutdown()){
+                executorService.shutdownNow();
+            }
         }
-
-        if(strategies.contains("turtle")) {
-            executorService.submit(() -> {
-                try {
-                    stockAnalysis.turtleResult();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
-        }
-
     }
 
     private void average20Result() throws IOException {
